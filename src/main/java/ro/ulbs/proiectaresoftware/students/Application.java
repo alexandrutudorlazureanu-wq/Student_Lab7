@@ -1,55 +1,106 @@
 package ro.ulbs.proiectaresoftware.students;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class Application {
 
     public static void main(String[] args) {
-        Student s1 = new Student(112, "Ioan", "Popa", "TI21/1");
-        Student s2 = new Student(112, "Maria", "Oprea", "TI21/1");
-        Student s3 = new Student(120, "Alis", "Popa", "TI21/2");
-        Student s4 = new Student(122, "Mihai", "Vecerdea", "TI22/1");
-        Student s5 = new Student(122, "Eugen", "Uritescu", "TI22/2");
+        Path caleIn = Paths.get("studenti_in.txt");
+        Path caleOut = Paths.get("studenti_out.txt");
+
+        List<Student> listaStudenti = new ArrayList<>();
+
+        try {
+
+            List<String> linii = Files.readAllLines(caleIn);
+
+            for (String linie : linii) {
+                if (linie.trim().isEmpty()) continue;
 
 
-        Set<Student> listaStudenti = new HashSet<>();
-        listaStudenti.add(s1);
-        listaStudenti.add(s2);
-        listaStudenti.add(s3);
-        listaStudenti.add(s4);
-        listaStudenti.add(s5);
+                String[] date = linie.split(",");
 
-        System.out.println(String.format("%-15s %-15s %-15s %-15s",
-                "numar matricol", "prenume", "nume", "formatieDeStudiu"));
-        System.out.println("------------------------------------------------------------");
-
-        for (Student s : listaStudenti) {
-            System.out.println(s);
-        }
-
-        System.out.println("------------------------------------------------------------");
+                if (date.length == 4) {
+                    int nrMatricol = Integer.parseInt(date[0].trim());
+                    String prenume = date[1].trim();
+                    String nume = date[2].trim();
+                    String formatieDeStudiu = date[3].trim();
 
 
-        Student cautatB = new Student(120, "Alis", "Popa", "TI21/2");
-        System.out.println("b) Este Alis Popa in lista? " + listaStudenti.contains (cautatB));
-
-
-        Student cautatC = new Student(112, "Maria", "Popa", "TI21/1");
-        System.out.println("c) Este Maria Popa in lista? " + listaStudenti.contains(cautatC));
-
-    }
-
-
-    public static boolean existaStudent(Set<Student> lista, Student studentCautat) {
-        for (Student s : lista) {
-            if (s.getPrenume().equals(studentCautat.getPrenume()) &&
-                    s.getNume().equals(studentCautat.getNume()) &&
-                    s.getFormatieDeStudiu().equals(studentCautat.getFormatieDeStudiu())) {
-                return true;
+                    listaStudenti.add(new Student(nrMatricol, prenume, nume, formatieDeStudiu));
+                }
             }
+
+
+            System.out.println(String.format("%-15s %-15s %-15s %-15s",
+                    "Nr. Matricol", "Prenume", "Nume", "Formație"));
+            System.out.println("    ");
+            for (Student s : listaStudenti) {
+                System.out.println(s);
+            }
+
+
+            Collections.sort(listaStudenti, new Comparator<Student>() {
+                @Override
+                public int compare(Student s1, Student s2) {
+                    return s1.getNume().compareToIgnoreCase(s2.getNume());
+                }
+            });
+
+//tema de casa
+
+            Collections.sort(listaStudenti, new Comparator<Student>() {
+
+
+
+                @Override
+                public int compare(Student s1, Student s2) {
+
+                    int res = s1.getFormatieDeStudiu().compareToIgnoreCase(s2.getFormatieDeStudiu());
+
+                    if (res == 0) {
+
+                        return s1.getNume().compareToIgnoreCase(s2.getNume());
+
+                    }
+
+
+                    return res;
+
+                }
+            });
+
+            List<String> deScrisSortat  = new ArrayList<>();
+            for(Student s : listaStudenti){
+
+                deScrisSortat.add(s.toString());
+
+                }
+            Files.write(Paths.get("studenti_out_sorted.txt"),deScrisSortat );
+
+
+
+
+
+            List<String> deScris = new ArrayList<>();
+            for (Student s : listaStudenti) {
+                deScris.add(s.toString());
+            }
+            Files.write(caleOut, deScris);
+
+            System.out.println("\n Studenții au fost sortați și salvați în fisier.");
+
+        } catch (IOException e) {
+            System.err.println("Eroare: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.err.println("Eroare: " + e.getMessage());
         }
-        return false;
     }
 }
