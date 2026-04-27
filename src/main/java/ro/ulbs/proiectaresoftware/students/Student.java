@@ -2,20 +2,21 @@ package ro.ulbs.proiectaresoftware.students;
 
 import java.util.Objects;
 
-public class Student {
-    private int numarMatricol;
-    private String prenume;
-    private String nume;
-    private String formatieDeStudiu;
-    private float nota;
+public final class Student {
+    private final int numarMatricol;
+    private final String prenume;
+    private final String nume;
+    private final  String formatieDeStudiu;
+    private final float nota;
 
-    public Student(int numarMatricol, String prenume, String nume, String formatieDeStudiu) {
+    public Student(int numarMatricol, String prenume, String nume, String formatieDeStudiu, float nota) {
         this.numarMatricol = numarMatricol;
         this.prenume = prenume;
         this.nume = nume;
         this.formatieDeStudiu = formatieDeStudiu;
-        this.nota = 0.0f;
+        this.nota = nota;
     }
+
 
     public String getPrenume() {
         return prenume;
@@ -31,10 +32,10 @@ public class Student {
         return numarMatricol;
     }
 
-
-    public void setNota(float nota) {
-        this.nota = nota;
+    public String getFormatieDeStudiu() {
+        return formatieDeStudiu;
     }
+
 
     @Override
     public boolean equals(Object o) {
@@ -54,10 +55,10 @@ public class Student {
         return String.format("%-15d %-15s %-15s %-15s %-10.2f",
                 numarMatricol, prenume, nume, formatieDeStudiu, nota);
     }
-    public String getFormatieDeStudiu() {
-        return formatieDeStudiu;
-    }
 
+
+    public void setNota(float v) {
+    }
 }
 
 
