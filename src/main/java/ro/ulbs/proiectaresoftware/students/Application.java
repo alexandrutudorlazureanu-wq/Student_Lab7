@@ -1,64 +1,116 @@
 package ro.ulbs.proiectaresoftware.students;
 
-import java.io.FileWriter;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class Application {
 
     public static void main(String[] args) {
 
-        Student s1 = new Student(112, "Ioan", "Popa", "TI21/1");
-        Student s2 = new Student(112, "Maria", "Oprea", "TI21/1");
-        Student s3 = new Student(120, "Alis", "Popa", "TI21/2");
-        Student s4 = new Student(122, "Mihai", "Vecerdea", "TI22/1");
-        Student s5 = new Student(122, "Eugen", "Uritescu", "TI22/2");
-        Student s6 = new Student(1029, "Bianca", "Popescu", "TI131/1");
-        s6.setNota(9.10f);
-        s1.setNota(7.50f);
+        List<StudentBursier> listaStudenti = new ArrayList<>();
+        listaStudenti.add(new StudentBursier(1025, "Andrei", "Popa", "ISM141/2", 8.70f, 725.50));
+        listaStudenti.add(new StudentBursier(1024, "Ioan", "Mihalcea", "ISM141/1", 9.80f, 801.10));
+        listaStudenti.add(new StudentBursier(1026, "Anamaria", "Prodan", "TI131/1", 8.90f, 745.50));
+        listaStudenti.add(new StudentBursier(1029, "Bianca", "Popescu", "TI131/1", 9.10f, 780.80));
 
-        Set<Student> listaStudenti = new HashSet<>(Arrays.asList(s1, s2, s3, s4, s5, s6));
+        String numeFisierExcel = "laborator8_students.xls";
 
 
-        List<StudentBursier> bursieri = new ArrayList<>();
-        bursieri.add(new StudentBursier(1025, "Andrei", "Popa", "ISM141/2", 8.70, 725.50));
-        bursieri.add(new StudentBursier(1024, "Ioan", "Mihalcea", "ISM141/1", 9.80, 801.10));
-        bursieri.add(new StudentBursier(1026, "Anamaria", "Prodan", "TI131/1", 8.90, 745.50));
-        bursieri.add(new StudentBursier(1029, "Bianca", "Popescu", "TI131/1", 9.10, 780.80));
+        exportaInExcel(numeFisierExcel, listaStudenti);
+
+        System.out.println("\n ");
 
 
-        System.out.println("\n Lista de studenti bursieri :");
-        for (StudentBursier sb : bursieri) {
-            System.out.println(sb);
+        System.out.println("Citim datele:");
+        List<Student> studentiCititi = citesteDinExcel(numeFisierExcel);
+
+        for (Student s : studentiCititi) {
+            System.out.println(s);
         }
-
-
-        salveazaInFisier("bursieri_out.txt", bursieri);
-
-        System.out.println("\n Merge.");
     }
 
 
+    public static void exportaInExcel(String numeFisier, Collection<? extends Student> studenti) {
+        try (Workbook workbook = new HSSFWorkbook();
+             FileOutputStream fileOut = new FileOutputStream(numeFisier)) {
 
-    public static void salveazaInFisier(String numeFisier, Collection<? extends Student> colectie) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(numeFisier))) {
-            writer.println(String.format("%-15s %-15s %-15s %-15s %-10s %-10s",
-                    "Matricol", "Prenume", "Nume", "Formatie", "Nota", "Extra/Bursa"));
+            Sheet sheet = workbook.createSheet("Studenti");
 
-            for (Student s : colectie) {
-                writer.println(s.toString());
+
+            Row headerRow = sheet.createRow(0);
+
+            String[] coloane = {"Matricol", "Prenume", "Nume", "Formatie", "Nota"};
+
+            for (int i = 0; i < coloane.length; i++) {
+
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(coloane[i]);
+
             }
+
+
+            int rowNum = 1;
+            for (Student s : studenti) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(s.getNumarMatricol());
+                row.createCell(1).setCellValue(s.getPrenume());
+                row.createCell(2).setCellValue(s.getNume());
+                row.createCell(3).setCellValue(s.getFormatieDeStudiu());
+                row.createCell(4).setCellValue(s.getNota());
+            }
+
+
+            for (int i = 0; i < coloane.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(fileOut);
+            System.out.println("Exportul a fost realizat cu succes în: " + numeFisier);
+
         } catch (IOException e) {
-            System.err.println("Nu merge : " + e.getMessage());
+            System.err.println("Eroare la scrierea fișierului Excel: " + e.getMessage());
         }
     }
 
-    public static float gasesteNota(String prenume, String nume, Map<String, Student> mapTineri) {
-        String cheie = prenume + " " + nume;
-        if (mapTineri.containsKey(cheie)) {
-            return 9.10f;
+
+    public static List<Student> citesteDinExcel(String numeFisier) {
+        List<Student> listaRezultat = new ArrayList<>();
+
+        try (FileInputStream fileIn = new FileInputStream(numeFisier);
+             Workbook workbook = new HSSFWorkbook(fileIn)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+
+                int matricol = (int) row.getCell(0).getNumericCellValue();
+                String prenume = row.getCell(1).getStringCellValue();
+                String nume = row.getCell(2).getStringCellValue();
+                String formatie = row.getCell(3).getStringCellValue();
+                float nota = (float) row.getCell(4).getNumericCellValue();
+
+
+                Student student = new Student(matricol, prenume, nume, formatie, nota);
+                student.setNota(nota);
+
+                listaRezultat.add(student);
+            }
+
+        } catch (IOException e) {
+            System.err.println("Eroare: " + e.getMessage());
         }
-        return 0.0f;
+
+        return listaRezultat;
     }
 }

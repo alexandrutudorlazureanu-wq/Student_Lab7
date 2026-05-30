@@ -2,7 +2,7 @@ package ro.ulbs.proiectaresoftware.students;
 
 import java.util.Objects;
 
-public final class Student {
+public  class Student {
     private final int numarMatricol;
     private final String prenume;
     private final String nume;
